@@ -1,0 +1,88 @@
+library(rdatamarket)
+library(forecast)
+#View the data
+data <- dmlist("http://data.is/1RvZGQL")
+is.ts(data)
+print(tsdata)
+tsdata <- as.ts(dmseries("http://data.is/1RvZGQL"))
+is.ts(tsdata)
+
+#1) Visualize
+
+plot(tsdata)
+
+#2) Making it stationary
+
+plot(log(tsdata)) #removed variance by LOG
+plot(diff(log(tsdata))) #Detrending 
+#Now the plot almost stationary
+
+#3) Determine P,D,Q
+acf(diff(log(tsdata))) #acf gives whether to go for AR or MA. 
+#If it is +ve correlation then go for AR. If -ve correlation then MA model is best
+
+pacf(diff(log(tsdata))) #here sudden cut off is there at lag 1. so p=1
+#In pacf we look at graduality and cut off.
+# If sharp decline (cut off) is there - AR
+# If there is a gradulaity - MR components 
+
+#4) AR1 Model
+arima(log(tsdata), c(1,1,0), seasonal=(list(order=c(1,1,0),period=12)))
+#seasonality component is known from normal ts plot and can be confirmed by ACF plot
+#d term: for differencing
+
+#AR2 Model
+arima(log(tsdata), c(0,1,1), seasonal=(list(order=c(0,1,1),period=12)))
+
+#AR3 Model
+fit <- arima(log(tsdata), c(1,1,1), seasonal=(list(order=c(1,1,1),period=12)))
+BIC(fit)
+
+fit <- arima(log(tsdata), c(0,1,1), seasonal=(list(order=c(0,1,1),period=12)))
+BIC(fit)
+
+#Assignment is to making aic value even more better
+
+###########################################################################################
+#########################Forecastring for AirPassengers####################################
+###########################################################################################
+
+data("AirPassengers")
+is.ts(AirPassengers)
+plot(AirPassengers)
+
+#Stationarizing the data
+plot(log(AirPassengers))
+plot(diff(log(AirPassengers)))
+
+#determine p,d,q
+acf(diff(log(AirPassengers))) #there is a graduality. so MA
+pacf(diff(log(AirPassengers))) #sudden drop at lag1.so q=1
+
+fit1 <- arima(log(AirPassengers), c(0,1,1), seasonal=(list(order=c(0,1,1),period=12)))
+BIC(fit1)
+fit2 <- arima(log(AirPassengers), c(1,1,0), seasonal=(list(order=c(1,1,0),period=12)))
+BIC(fit2)
+fit3 <- arima(log(AirPassengers), c(1,1,1), seasonal=(list(order=c(1,1,1),period=12)))
+BIC(fit3)
+
+#The bic and aic values are good at MR component. which is fit1. 
+
+#Predicting the model
+pred <- predict(fit1,n.ahead = 10*12)
+
+#Validate the model
+
+ts.plot(AirPassengers, 2.718^pred$pred, log="y", lty=c(1,3))
+#log="y" is for making the Y values to log values
+# 2.718 is to add the error/all other variations to the stationary series
+ts.plot(AirPassengers, 2.718^pred$pred,lty=c(1,3))
+
+########3
+auto.arima(AirPassengers)
+
+#p,d,q non seasonality
+#P,D,Q seasonality
+
+summary(AirPassengers)
+  
