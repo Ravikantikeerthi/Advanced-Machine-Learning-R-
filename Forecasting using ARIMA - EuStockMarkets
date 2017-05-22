@@ -59,6 +59,6 @@ FTSE_forecast <- forecast(MA3, h = 3*260)
 #Model Validation
 plot(FTSE_forecast, log="y", lty=c(1,3))
 
-# All the plots of forecasting are attached along with this R-code iin ZIP format
+
 
 
