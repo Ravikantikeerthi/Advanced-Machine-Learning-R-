@@ -1,2 +1,2 @@
 # TSForecasting_ARIMA
-Time series forecasting of MonthlyHotelOccupation data (taken from DataMarket website) by building ARIMA model
+Time series forecasting of EuStockMarket data by building ARIMA model
