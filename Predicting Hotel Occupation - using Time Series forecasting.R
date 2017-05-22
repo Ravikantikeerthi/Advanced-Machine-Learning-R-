@@ -1,0 +1,64 @@
+#Assignment1
+#Use EuStockMarkets data to Forecast using ARIMA and with all the plots used to determine the 
+#(p,d,q).
+
+library(forecast)
+
+View(EuStockMarkets)
+
+#Considered FTSE stock indix to forecast using ARIMA model
+FTSE <- EuStockMarkets[,4] 
+is.ts(FTSE)
+
+plot(FTSE)
+plot(log(FTSE)) #removed variance 
+plot(diff(log(FTSE))) # Detrending
+#Now the plot almost stationary
+
+###Determine P,D,Q###
+acf(diff(log(FTSE)), lag.max = 260)
+pacf(diff(log(FTSE)), lag.max = 2600)
+
+#As it is not clear whether to go for AR or MA from ACF and PACF plots, trying some possible combinations
+
+#First trying AR models by taking q=0
+# As the data do not have seasonality, P D Q terms are not considered 
+AR1<- arima(log(FTSE), c(1,1,0)) 
+#output: sigma^2 estimated as 6.291e-05:  log likelihood = 6354.01,  aic = -12704.02
+
+AR2<- arima(log(FTSE), c(2,1,0))
+#output: sigma^2 estimated as 6.29e-05:  log likelihood = 6354.2,  aic = -12702.4
+
+
+#Second, trying MA models by taking p=0
+MA1<- arima(log(FTSE), c(0,1,1))
+#output: sigma^2 estimated as 6.29e-05:  log likelihood = 6354.19,  aic = -12704.38
+
+MA2<- arima(log(FTSE), c(0,1,2))
+#output: sigma^2 estimated as 6.289e-05:  log likelihood = 6354.23,  aic = -12702.46
+
+BIC(AR1) #output: -12692.96
+BIC(MA1) #output: -12693.32
+
+#As the aic and bic values of AR1 and MA1 models are close to each other, here I am trying to 
+#incorporate DRIFT component to see which model is best
+
+AR3<- Arima(log(FTSE), order = c(1,1,0), include.drift = TRUE)
+#output: AIC=-12706.58   AICc=-12706.56   BIC=-12689.99
+
+MA3<- Arima(log(FTSE), order = c(0,1,1), include.drift = TRUE)
+#output: AIC=-12707   AICc=-12706.98   BIC=-12690.41
+
+#From the results of all the combinations tried, MA3 (0,1,1) model has relatively showed 
+# less aic and bic values. So considering MA3 (0,1,1) model as the best model to proceed
+
+################################## Model Forecasting ##################################
+
+FTSE_forecast <- forecast(MA3, h = 3*260)
+
+#Model Validation
+plot(FTSE_forecast, log="y", lty=c(1,3))
+
+# All the plots of forecasting are attached along with this R-code iin ZIP format
+
+
